@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import {
   DeviceEventEmitter,
   StyleSheet,
@@ -6,15 +6,22 @@ import {
   ScrollView,
   View,
 } from 'react-native';
-import { ActivityIndicator, Divider, Button, Text } from 'react-native-paper';
+import {
+  ActivityIndicator,
+  Divider,
+  Button,
+  IconButton,
+  Menu,
+  Text,
+} from 'react-native-paper';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Formik, FormikHelpers } from 'formik';
 import jsonToSql from 'json-sql';
 
 import SafeAreaView from '@components/SafeAreaView';
-import { HeaderButton } from '@components/Header';
 import TextInputField from '@components/TextInputField';
 import { capitalize } from 'utils/utils';
+import { ICONS } from 'utils/icons';
 
 import type { RowManagerScreenProps } from './types';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
@@ -71,20 +78,6 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
 
   const primaryKeys = useMemo(() => getPrimaryColumns(schema ?? []), [schema]);
 
-  useEffect(() => {
-    navigation.setOptions({
-      title: `${capitalize(action)} Row`,
-      headerRight: () =>
-        action === 'edit' ? (
-          <HeaderButton
-            icon="delete"
-            title="Delete row"
-            onPress={() => handleDeleteRow()}
-          />
-        ) : null,
-    });
-  }, [navigation, action]);
-
   const onSubmit = async (values: Row, actions: FormikHelpers<Row>) => {
     // Map values changing ' to \'
     values = Object.entries(values).reduce((diff, [colName, val]) => {
@@ -126,7 +119,7 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
     return mutation.mutateAsync(sql.query);
   };
 
-  const handleDeleteRow = () => {
+  const handleDeleteRow = useCallback(() => {
     const deleteJson = {
       type: 'remove',
       table: tableName,
@@ -150,7 +143,27 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
         cancelable: true,
       },
     );
-  };
+  }, [initialValues, primaryKeys]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: `${capitalize(action)} Row`,
+      headerRight: () =>
+        action === 'edit' ? (
+          <ActionsMenu
+            handleClone={() =>
+              navigation.navigate('RowManager', {
+                action: 'clone',
+                databaseName,
+                tableName,
+                row,
+              })
+            }
+            handleDelete={handleDeleteRow}
+          />
+        ) : null,
+    });
+  }, [navigation, action, handleDeleteRow]);
 
   return (
     <SafeAreaView>
@@ -214,6 +227,41 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
     </SafeAreaView>
   );
 };
+
+type ActionsMenuProps = {
+  handleClone: () => void;
+  handleDelete: () => void;
+};
+
+function ActionsMenu({ handleClone, handleDelete }: ActionsMenuProps) {
+  const [visible, setVisible] = React.useState(false);
+
+  const openMenu = () => setVisible(true);
+  const closeMenu = () => setVisible(false);
+
+  return (
+    <Menu
+      visible={visible}
+      onDismiss={closeMenu}
+      anchor={<IconButton onPress={openMenu} icon={ICONS.more}></IconButton>}
+    >
+      <Menu.Item
+        title="Clone"
+        onPress={() => {
+          handleClone();
+          closeMenu();
+        }}
+      />
+      <Menu.Item
+        title="Delete"
+        onPress={() => {
+          handleDelete();
+          closeMenu();
+        }}
+      />
+    </Menu>
+  );
+}
 
 const styles = StyleSheet.create({
   margin: {
