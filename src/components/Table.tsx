@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import type { GestureResponderEvent } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { FlatList, ScrollView } from 'react-native';
 import { DataTable } from 'react-native-paper';
 
@@ -7,12 +7,13 @@ import { getLargestColumnsWidth } from 'utils/utils';
 
 interface TableProps {
   data: Row[];
-  onRowPress?: (event: GestureResponderEvent) => void;
+  onRowPress?: (row: Row) => void;
 }
 
 const itemsPerPageList = [5, 10, 20, 30, 50];
 
 const Table = ({ data, onRowPress }: TableProps) => {
+  const window = useWindowDimensions();
   const [columnsWidth, setColumnsWidth] = useState<number[]>([]);
 
   // Table Pagination state
@@ -35,11 +36,14 @@ const Table = ({ data, onRowPress }: TableProps) => {
       <ScrollView horizontal={true} bounces={false}>
         <DataTable>
           <DataTable.Header>
-            {Object.keys(data[0]).map((key, index) => (
+            {Object.keys(data[0]).map((key, index, array) => (
               <DataTable.Title
                 key={`${key}-${index}`}
                 style={{
-                  width: columnsWidth[index],
+                  width: Math.max(
+                    columnsWidth[index] ?? 0,
+                    window.width / array.length,
+                  ),
                 }}
               >
                 {key}
@@ -51,12 +55,15 @@ const Table = ({ data, onRowPress }: TableProps) => {
             data={dataPerPage}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item, index: itemIndex }) => (
-              <DataTable.Row onPress={onRowPress}>
-                {Object.values(item).map((value, index) => (
+              <DataTable.Row onPress={() => onRowPress?.(item)}>
+                {Object.values(item).map((value, index, array) => (
                   <DataTable.Cell
                     key={`${itemIndex}-${index}`}
                     style={{
-                      width: columnsWidth[index],
+                      width: Math.max(
+                        columnsWidth[index] ?? 0,
+                        window.width / array.length,
+                      ),
                     }}
                   >
                     {String(value)}

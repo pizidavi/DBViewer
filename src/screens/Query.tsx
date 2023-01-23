@@ -193,7 +193,9 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
             </Button>
           </View>
 
-          {Array.isArray(data) && data.length ? <Table data={data} /> : null}
+          {Array.isArray(data) && data.length ? (
+            <Table data={data} onRowPress={handleRowPress} />
+          ) : null}
         </View>
       ) : null}
     </SafeAreaView>
