@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import {
-  useWindowDimensions,
-  DeviceEventEmitter,
-  Alert,
-  FlatList,
-  ScrollView,
-  View,
-} from 'react-native';
+import { DeviceEventEmitter, Alert, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import {
   ActivityIndicator,
@@ -19,6 +12,7 @@ import { Parser } from 'node-sql-parser/build/mysql';
 
 import { HeaderButton } from '@components/Header';
 import SafeAreaView from '@components/SafeAreaView';
+import Table from '@components/Table';
 
 import type { QueryScreenProps } from './types';
 import { useSnackBar } from 'contexts/Snackbar';
@@ -31,16 +25,14 @@ import {
 } from 'app/services/databaseApi';
 
 const sqlParser = new Parser();
-const itemsPerPageList = [10, 20, 30, 50];
 
 const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
   const serverName = route.params.serverName;
   const databaseName = route.params.databaseName;
   const tableName = route.params.tableName ?? null;
 
-  const window = useWindowDimensions();
-  const autoFetchQuery = useRef<boolean>(false);
   const snackbar = useSnackBar();
+  const autoFetchQuery = useRef<boolean>(false);
 
   const [currentAST, setCurrentAST] = useState<AST | null>(null);
   const currentTableName = useMemo<string | undefined>(() => {
@@ -85,15 +77,6 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
     keepPreviousData: true,
     enabled: false,
   });
-
-  // Table Pagination state
-  const [page, setPage] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(itemsPerPageList[0]);
-  const from = page * itemsPerPage;
-  const to = Math.min(
-    (page + 1) * itemsPerPage,
-    Array.isArray(data) ? data.length : 0,
-  );
 
   useEffect(() => {
     DeviceEventEmitter.addListener('refetch.query', () => {
@@ -210,61 +193,7 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
             </Button>
           </View>
 
-          {data && Array.isArray(data) && data.length ? (
-            <>
-              <ScrollView horizontal={true}>
-                <DataTable style={{ width: '100%' }}>
-                  <DataTable.Header>
-                    {Object.keys(data[0]).map((key, index, array) => (
-                      <DataTable.Title
-                        key={`${key}-${index}`}
-                        style={{
-                          width: Math.max(100, window.width / array.length),
-                        }}
-                      >
-                        {key}
-                      </DataTable.Title>
-                    ))}
-                  </DataTable.Header>
-
-                  <FlatList
-                    data={data.slice(from, to)}
-                    keyExtractor={(item, index) => index.toString()}
-                    renderItem={({ item, index: itemIndex }) => (
-                      <DataTable.Row onPress={() => handleRowPress(item)}>
-                        {Object.values(item).map((value, index, array) => (
-                          <DataTable.Cell
-                            key={`${itemIndex}-${index}`}
-                            style={{
-                              width: Math.max(100, window.width / array.length),
-                            }}
-                          >
-                            {String(value)}
-                          </DataTable.Cell>
-                        ))}
-                      </DataTable.Row>
-                    )}
-                    style={{ height: '100%' }}
-                  />
-                </DataTable>
-              </ScrollView>
-
-              <DataTable.Pagination
-                label={`${from + 1}-${to} of ${data.length}`}
-                page={page}
-                onPageChange={page => setPage(page)}
-                showFastPaginationControls
-                numberOfPages={Math.ceil(data.length / itemsPerPage)}
-                numberOfItemsPerPageList={itemsPerPageList}
-                numberOfItemsPerPage={itemsPerPage}
-                onItemsPerPageChange={number => {
-                  setItemsPerPage(number);
-                  setPage(0);
-                }}
-                selectPageDropdownLabel="Rows per page"
-              />
-            </>
-          ) : null}
+          {Array.isArray(data) && data.length ? <Table data={data} /> : null}
         </View>
       ) : null}
     </SafeAreaView>
