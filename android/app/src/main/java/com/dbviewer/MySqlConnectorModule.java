@@ -88,8 +88,6 @@ public class MySqlConnectorModule extends ReactContextBaseJavaModule {
         int affectedRows = statement.getUpdateCount();
         promise.resolve(affectedRows);
       }
-      // else
-      //   promise.resolve(null);
     } catch (Exception e) {
       promise.reject("500", e.getMessage(), e);
     }

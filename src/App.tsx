@@ -25,7 +25,7 @@ const App = () => {
         <Stack.Screen
           name="Home"
           component={Home}
-          options={{ title: 'DBViewer', headerTitleStyle: { fontSize: 24 } }}
+          options={{ title: 'DB Viewer', headerTitleStyle: { fontSize: 24 } }}
         />
         <Stack.Screen name="Server" component={Server} />
         <Stack.Screen name="Tables" component={Tables} />

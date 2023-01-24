@@ -4,6 +4,8 @@ import { TextInput, HelperText } from 'react-native-paper';
 import type { FieldHookConfig } from 'formik';
 import { useField, ErrorMessage } from 'formik';
 
+import { tryParse } from 'utils/utils';
+
 type TextInputFieldProps = {
   helperText?: string | null | undefined;
 } & React.ComponentProps<typeof TextInput> &
@@ -47,16 +49,5 @@ const TextInputField = ({
     </View>
   );
 };
-
-/**
- * Try to parse a string to number
- * @param value Value to parse
- * @param parser Parser
- * @returns Parsed value or origin value
- */
-function tryParse(value: string, parser = parseInt): number | string {
-  const v = parser(value);
-  return !isNaN(v) ? v : value;
-}
 
 export default TextInputField;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { DeviceEventEmitter, Alert, View } from 'react-native';
+import { DeviceEventEmitter, Alert, View, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import {
   ActivityIndicator,
@@ -23,13 +23,14 @@ import {
   getTableColumnsInformationSchema,
   getPrimaryColumns,
 } from 'app/services/databaseApi';
+import { ICONS } from 'utils/icons';
 
 const sqlParser = new Parser();
 
 const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
   const serverName = route.params.serverName;
   const databaseName = route.params.databaseName;
-  const tableName = route.params.tableName ?? null;
+  const tableName = route.params.tableName;
 
   const snackbar = useSnackBar();
   const autoFetchQuery = useRef<boolean>(false);
@@ -47,6 +48,11 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
     }
     return undefined;
   }, [currentAST]);
+  const currentTableColumns = useMemo<string[]>(() => {
+    if (currentAST?.type === 'select' && Array.isArray(currentAST.columns))
+      return currentAST.columns.map(col => col.expr.column);
+    return [];
+  }, [currentAST]);
 
   const { isSuccess: connected, isLoading: connecting } = useQuery({
     queryKey: ['use', databaseName],
@@ -62,6 +68,11 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
     onError: (error: Error) => Alert.alert('Error', error.message),
     enabled: !!currentTableName,
   });
+
+  const primaryColums = useMemo(
+    () => (tableSchema ? getPrimaryColumns(tableSchema) : []),
+    [tableSchema],
+  );
 
   const [query, setQuery] = useState(
     tableName ? `SELECT * FROM ${tableName} \nLIMIT 100` : '',
@@ -97,23 +108,22 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
       title: `${databaseName}@${serverName}`,
       headerRight: () => (
         <HeaderButton
-          icon="plus"
+          icon={ICONS.plus}
           title="New row"
           onPress={() => handleNewRow()}
           disabled={!!!currentTableName}
         />
       ),
     });
-  }, [navigation, currentTableName]);
+  }, [navigation, databaseName, serverName, currentTableName]);
 
   const handleSubmit = () => {
     if (!query) return Alert.alert('Abort', 'Insert a SQL Query');
 
     try {
-      const ast = sqlParser.astify(query);
+      const ast = sqlParser.astify(query); // throw if parse fail
       if (Array.isArray(ast)) setCurrentAST(ast.length ? ast[0] : null);
-      else setCurrentAST(ast);
-      // TODO: understand why ast can be an array
+      else setCurrentAST(ast); // TODO: understand why ast can be an array
     } catch (error) {
       setCurrentAST(null);
     }
@@ -142,28 +152,19 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
         'Edit of query from multiple table are not supported',
       );
 
-    if (currentAST?.type === 'select') {
-      const primaryCols = getPrimaryColumns(tableSchema!);
-      const cols: string[] = Array.isArray(currentAST.columns)
-        ? currentAST.columns.map(col => col.expr.column)
-        : [];
+    if (currentAST?.type !== 'select') return;
+    if (
+      currentAST.columns !== '*' &&
+      !primaryColums.every(p => currentTableColumns.find(c => c === p))
+    )
+      return Alert.alert('Query is not editable');
 
-      if (
-        currentAST.columns !== '*' &&
-        !primaryCols.every(p => cols.find(c => c === p))
-      )
-        return Alert.alert(
-          'Query is not editable',
-          'Select at least all primary columns',
-        );
-
-      navigation.navigate('RowManager', {
-        action: 'edit',
-        databaseName,
-        tableName: currentTableName,
-        row,
-      });
-    }
+    navigation.navigate('RowManager', {
+      action: 'edit',
+      databaseName,
+      tableName: currentTableName,
+      row,
+    });
   };
 
   return (
@@ -187,7 +188,7 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
               onPress={() => handleSubmit()}
               loading={isFetching}
               disabled={isFetching}
-              style={{ marginVertical: 5 }}
+              style={styles.margin}
             >
               Execute
             </Button>
@@ -201,5 +202,11 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  margin: {
+    marginVertical: 5,
+  },
+});
 
 export default QueryScreen;

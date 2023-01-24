@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { StyleSheet, Alert, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -23,13 +23,14 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
   const [isExtended, setIsExtended] = useState(true);
 
-  const handleScrool = ({
-    nativeEvent,
-  }: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const currentScrollPosition =
-      Math.floor(nativeEvent?.contentOffset?.y) ?? 0;
-    setIsExtended(currentScrollPosition <= 0);
-  };
+  const handleScrool = useCallback(
+    ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const currentScrollPosition =
+        Math.floor(nativeEvent?.contentOffset?.y) ?? 0;
+      setIsExtended(currentScrollPosition <= 0);
+    },
+    [],
+  );
 
   return (
     <SafeAreaView>
@@ -40,7 +41,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         onScroll={handleScrool}
       />
       <AnimatedFAB
-        icon="plus"
+        icon={ICONS.plus}
         label="New Server"
         extended={isExtended}
         onPress={() => navigation.navigate('ServerManager')}
@@ -57,14 +58,14 @@ function ServerItem(props: Server) {
       onPress={() => {
         navigation.navigate('Server', { id: props.id });
       }}
-      style={{ marginBottom: 10 }}
+      style={styles.margin}
     >
       <Card.Title
         title={props.name}
         titleVariant="titleMedium"
         subtitle={`${props.host}:${props.port}`}
         subtitleVariant="labelMedium"
-        left={_ => <Avatar.Icon {..._} icon="database" />}
+        left={_ => <Avatar.Icon {..._} icon={ICONS.database} />}
         right={_ => <RightMenu {..._} server={props} />}
       />
     </Card>
@@ -130,6 +131,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 16,
     bottom: 16,
+  },
+  margin: {
+    marginBottom: 10,
   },
 });
 

@@ -10,7 +10,12 @@ const TextSecureInput = ({
   return (
     <TextInput
       secureTextEntry={secure}
-      right={<TextInput.Icon icon="eye" onPress={() => setSecure(s => !s)} />}
+      right={
+        <TextInput.Icon
+          icon={secure ? 'eye' : 'eye-off'}
+          onPress={() => setSecure(s => !s)}
+        />
+      }
       {...others}
     />
   );

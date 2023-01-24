@@ -138,7 +138,7 @@ function DatabaseItem({ name, serverName }: DatabaseItemProps) {
       onPress={() =>
         navigation.navigate('Query', { serverName, databaseName: name })
       }
-      style={{ marginBottom: 10 }}
+      style={styles.margin}
     >
       <Card.Title
         title={name}
@@ -183,6 +183,10 @@ function RightMenu({
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  margin: {
+    marginBottom: 10,
+  },
+});
 
 export default ServerScreen;

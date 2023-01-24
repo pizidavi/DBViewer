@@ -73,8 +73,13 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
     },
   });
 
-  const initialValues: Row =
-    action === 'new' ? columnsSchemaToRow(schema) : { ...row, ...completeRow };
+  const initialValues: Row = useMemo(
+    () =>
+      action === 'new'
+        ? columnsSchemaToRow(schema)
+        : { ...row, ...completeRow },
+    [action, row, completeRow],
+  );
 
   const primaryKeys = useMemo(() => getPrimaryColumns(schema ?? []), [schema]);
 
@@ -173,9 +178,9 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
         <ScrollView
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
-          style={{ padding: 5, paddingBottom: 10 }}
+          contentContainerStyle={{ padding: 5, paddingBottom: 10 }}
         >
-          <Text variant="bodyLarge" style={{ marginVertical: 5 }}>
+          <Text variant="bodyLarge" style={styles.text}>
             Table: {tableName}
           </Text>
           <Formik
@@ -203,7 +208,7 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
                         }
                         style={styles.margin}
                       />
-                      <Divider style={{ marginVertical: 5 }} />
+                      <Divider style={styles.divider} />
                     </View>
                   );
                 })}
@@ -215,7 +220,7 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
                   disabled={
                     !isValid || isSubmitting || (action === 'edit' && !dirty)
                   }
-                  style={[styles.margin, { marginTop: 5 }]}
+                  style={styles.button}
                 >
                   {action === 'edit' ? 'Edit' : 'Create'}
                 </Button>
@@ -264,8 +269,17 @@ function ActionsMenu({ handleClone, handleDelete }: ActionsMenuProps) {
 }
 
 const styles = StyleSheet.create({
+  button: {
+    marginVertical: 5,
+  },
+  divider: {
+    marginVertical: 10,
+  },
   margin: {
     marginBottom: 5,
+  },
+  text: {
+    marginVertical: 5,
   },
 });
 

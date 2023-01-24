@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
 import { nanoid } from '@reduxjs/toolkit';
 import { Text, Button } from 'react-native-paper';
@@ -31,24 +31,28 @@ const ServerManagerScreen = ({
   const action = route.params?.action || 'new';
   const server = route.params?.server;
 
-  const initialValues: Server = server
-    ? action === 'clone'
-      ? { ...server, id: nanoid() }
-      : server
-    : {
-        id: nanoid(),
-        name: '',
-        host: '',
-        port: '3306',
-        username: '',
-        password: '',
-      };
+  const initialValues = useMemo(
+    () =>
+      server
+        ? action === 'clone'
+          ? { ...server, id: nanoid() }
+          : server
+        : {
+            id: nanoid(),
+            name: '',
+            host: '',
+            port: '3306',
+            username: '',
+            password: '',
+          },
+    [server, action],
+  );
 
   useEffect(() => {
     navigation.setOptions({
       title: `${capitalize(action)} Server`,
     });
-  }, [navigation]);
+  }, [navigation, action]);
 
   const onSubmit = async (values: Server, actions: FormikHelpers<Server>) => {
     switch (action) {
@@ -68,7 +72,7 @@ const ServerManagerScreen = ({
       <ScrollView
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
-        style={{ padding: 5, paddingBottom: 10 }}
+        contentContainerStyle={{ padding: 5, paddingVertical: 10 }}
       >
         <Text>ID: {initialValues.id}</Text>
         <Formik
@@ -90,10 +94,10 @@ const ServerManagerScreen = ({
               <TextSecureInputField
                 name="password"
                 label="Password"
-                style={{ marginBottom: 10 }}
+                style={styles.marginEnd}
               />
 
-              {/* <Button
+              {/* <Button // TODO: Test connection button
                 mode="outlined"
                 onPress={() => console.log('test connection')}
                 disabled={!isValid || isSubmitting}
@@ -108,7 +112,7 @@ const ServerManagerScreen = ({
                 disabled={
                   !isValid || isSubmitting || (action === 'edit' && !dirty)
                 }
-                style={styles.margin}
+                style={styles.marginEnd}
               >
                 {action === 'new'
                   ? 'Create'
@@ -127,6 +131,9 @@ const ServerManagerScreen = ({
 const styles = StyleSheet.create({
   margin: {
     marginBottom: 5,
+  },
+  marginEnd: {
+    marginBottom: 10,
   },
 });
 

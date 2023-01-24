@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native';
 
-export interface MySqlConnectorConfig {
+export interface Config {
   host: string;
   port: number;
   username: string;
@@ -8,7 +8,7 @@ export interface MySqlConnectorConfig {
 }
 
 interface MySqlConnector {
-  connect: (config: MySqlConnectorConfig) => Promise<boolean>;
+  connect: (config: Config) => Promise<boolean>;
   close: () => Promise<void>;
   execute: <T>(query: string) => Promise<T>;
   executeQuery: <T>(query: string) => Promise<T>;

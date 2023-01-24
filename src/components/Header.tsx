@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StatusBar } from 'react-native';
 import { useTheme, Appbar, Tooltip } from 'react-native-paper';
 import {
@@ -23,10 +23,13 @@ const Header = ({
     headerTintColor,
   }: NativeStackNavigationOptions = options;
 
-  const buttonProps = {
-    canGoBack: navigation.canGoBack(),
-    tintColor: headerTintColor,
-  };
+  const buttonProps = useMemo(
+    () => ({
+      canGoBack: navigation.canGoBack(),
+      tintColor: headerTintColor,
+    }),
+    [navigation, headerTintColor],
+  );
 
   return (
     <>

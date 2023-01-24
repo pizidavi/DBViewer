@@ -10,6 +10,17 @@ export const capitalize = (str: string): string =>
   str[0].toUpperCase() + str.slice(1);
 
 /**
+ * Try to parse a string to number
+ * @param value Value to parse
+ * @param parser Parser
+ * @returns Parsed value or origin value
+ */
+export const tryParse = (value: string, parser = parseInt): number | string => {
+  const v = parser(value);
+  return !isNaN(v) ? v : value;
+};
+
+/**
  * Calculate how many px the largest Text
  * in an array takes
  * @param {Row[]} rows

@@ -13,7 +13,6 @@ import SafeAreaView from '@components/SafeAreaView';
 import type { TablesScreenProps } from './types';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
 import { useDatabase, getTables } from 'app/services/databaseApi';
-import { useNavigation } from '@react-navigation/native';
 
 const TablesScreen = ({ navigation, route }: TablesScreenProps) => {
   const databaseName = route.params.databaseName;
@@ -42,7 +41,15 @@ const TablesScreen = ({ navigation, route }: TablesScreenProps) => {
     navigation.setOptions({
       title: `${databaseName}@${serverName}`,
     });
-  }, [navigation]);
+  }, [navigation, databaseName, serverName]);
+
+  const handleCardPress = (name: string) => {
+    navigation.navigate('Query', {
+      serverName,
+      databaseName,
+      tableName: name,
+    });
+  };
 
   return (
     <SafeAreaView>
@@ -59,9 +66,8 @@ const TablesScreen = ({ navigation, route }: TablesScreenProps) => {
             renderItem={({ item }) => (
               <TableItem
                 key={item.name}
-                serverName={serverName}
-                databaseName={databaseName}
                 tableName={item.name}
+                onPress={handleCardPress}
               />
             )}
             contentContainerStyle={{ padding: 5, paddingVertical: 10 }}
@@ -73,24 +79,13 @@ const TablesScreen = ({ navigation, route }: TablesScreenProps) => {
 };
 
 type TableItemProps = {
-  serverName: string;
-  databaseName: string;
   tableName: string;
+  onPress: (tableName: string) => void;
 };
 
-function TableItem({ serverName, databaseName, tableName }: TableItemProps) {
-  const navigation = useNavigation();
+function TableItem({ tableName, onPress }: TableItemProps) {
   return (
-    <Card
-      onPress={() =>
-        navigation.navigate('Query', {
-          serverName,
-          databaseName,
-          tableName,
-        })
-      }
-      style={{ marginBottom: 10 }}
-    >
+    <Card onPress={() => onPress(tableName)} style={{ marginBottom: 10 }}>
       <Card.Content>
         <Text variant="titleSmall">{tableName}</Text>
       </Card.Content>
