@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, Alert, ScrollView } from 'react-native';
 import { nanoid } from '@reduxjs/toolkit';
+import { useMutation } from '@tanstack/react-query';
 import { Text, Button } from 'react-native-paper';
 import { Formik, FormikHelpers } from 'formik';
 import * as yup from 'yup';
@@ -9,10 +10,13 @@ import SafeAreaView from '@components/SafeAreaView';
 import TextInputField from '@components/TextInputField';
 import TextSecureInputField from '@components/TextSecureInputField';
 import { capitalize } from 'utils/utils';
+import type { Config } from 'lib/MySqlConnector';
 
 import type { ServerManagerScreenProps } from './types';
+import { useSnackBar } from 'contexts/Snackbar';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
 import { addServer, editServer } from 'app/services/storage';
+import { connect, disconnect } from 'app/services/databaseApi';
 
 const serverSchema = yup.object({
   id: yup.string().required(),
@@ -27,9 +31,26 @@ const ServerManagerScreen = ({
   navigation,
   route,
 }: ServerManagerScreenProps) => {
-  const dispatch = useAppDispatch();
   const action = route.params?.action || 'new';
   const server = route.params?.server;
+
+  const dispatch = useAppDispatch();
+  const snackbar = useSnackBar();
+
+  const connection = useMutation({
+    mutationFn: (config: Config) => connect(config),
+    onSuccess: () => {
+      disconnect().catch(error => {
+        if (error.code !== '404') console.warn(error);
+      });
+      snackbar.show('Connection established!');
+    },
+    onError: error =>
+      Alert.alert(
+        'Connection failed',
+        error instanceof Error ? error.message : undefined,
+      ),
+  });
 
   const initialValues = useMemo(
     () =>
@@ -53,6 +74,16 @@ const ServerManagerScreen = ({
       title: `${capitalize(action)} Server`,
     });
   }, [navigation, action]);
+
+  const handleTestConnection = (values: Server) => {
+    connection.mutate({
+      host: values.host,
+      port:
+        typeof values.port === 'string' ? parseInt(values.port) : values.port,
+      username: values.username,
+      password: values.password,
+    });
+  };
 
   const onSubmit = async (values: Server, actions: FormikHelpers<Server>) => {
     switch (action) {
@@ -81,7 +112,7 @@ const ServerManagerScreen = ({
           onSubmit={onSubmit}
           validateOnMount={true}
         >
-          {({ dirty, isValid, isSubmitting, handleSubmit }) => (
+          {({ dirty, isValid, isSubmitting, handleSubmit, values }) => (
             <>
               <TextInputField name="name" label="Name" style={styles.margin} />
               <TextInputField name="host" label="Host" style={styles.margin} />
@@ -97,14 +128,15 @@ const ServerManagerScreen = ({
                 style={styles.marginEnd}
               />
 
-              {/* <Button // TODO: Test connection button
+              <Button
                 mode="outlined"
-                onPress={() => console.log('test connection')}
-                disabled={!isValid || isSubmitting}
+                onPress={() => handleTestConnection(values)}
+                loading={connection.isLoading}
+                disabled={!isValid || isSubmitting || connection.isLoading}
                 style={styles.margin}
               >
                 Test connection
-              </Button> */}
+              </Button>
               <Button
                 mode="contained"
                 onPress={handleSubmit}
