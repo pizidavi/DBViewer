@@ -19,9 +19,7 @@ interface SnackBarActionProps {
   onPress: () => void;
 }
 
-const SnackBarContext = createContext<SnackBarContextProps>({
-  show: (message: string, action?: SnackBarActionProps) => {},
-});
+const SnackBarContext = createContext<SnackBarContextProps | null>(null);
 
 export const SnackBarProvider = ({ children }: PropsWithChildren) => {
   const [visible, setVisible] = useState(false);
@@ -58,4 +56,5 @@ export const SnackBarProvider = ({ children }: PropsWithChildren) => {
   );
 };
 
-export const useSnackBar = () => useContext(SnackBarContext);
+export const useSnackBar = () =>
+  useContext(SnackBarContext) as SnackBarContextProps;
