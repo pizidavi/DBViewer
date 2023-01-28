@@ -31,6 +31,7 @@ export const getLargestColumnsWidth = async (
 ): Promise<number[]> => {
   if (rows.length === 0) return [];
 
+  // Get the largest value for each column
   const largestValues: { [key: string]: string } = Object.keys(rows[0]).reduce(
     (a, v) => ({ ...a, [v]: v }),
     {},
@@ -43,6 +44,7 @@ export const getLargestColumnsWidth = async (
     });
   });
 
+  // Get the width of each column
   return (await Promise.all(
     Object.values(largestValues).map(async item => {
       const val = await rnTextSize.measure({ text: item, width: 220 });

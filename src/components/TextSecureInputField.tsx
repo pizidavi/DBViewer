@@ -6,6 +6,9 @@ import { useField, ErrorMessage } from 'formik';
 
 import TextSecureInput from './TextSecureInput';
 
+/**
+ * Component to show a Secure Text Input with Formik support
+ */
 const TextSecureInputField = ({
   name,
   label,

@@ -16,6 +16,7 @@ import { store, persistor } from './src/app/store';
 import { SnackBarProvider } from './src/contexts/Snackbar';
 import App from './src/App';
 
+// QueryClient for react-query
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -29,6 +30,9 @@ const queryClient = new QueryClient({
   },
 });
 
+/**
+ * Main component
+ */
 const Main = () => {
   const colorScheme = useColorScheme();
   const theme = themes[colorScheme];

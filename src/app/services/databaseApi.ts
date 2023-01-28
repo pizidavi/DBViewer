@@ -8,9 +8,17 @@ export const {
   executeUpdate,
 } = MySqlConnector;
 
+/**
+ * Use a database
+ * @param name Database name
+ */
 export const useDatabase = (name: string) =>
   MySqlConnector.execute<void>(`USE \`${name}\`;`);
 
+/**
+ * Get the list of databases
+ * @returns List of databases
+ */
 export const getDatabases = (): Promise<Database[]> =>
   MySqlConnector.executeQuery<{ SCHEMA_NAME: string }[]>(
     `SHOW DATABASES;`,
@@ -20,6 +28,10 @@ export const getDatabases = (): Promise<Database[]> =>
     })),
   );
 
+/**
+ * Get the list of tables in a database
+ * @returns List of tables
+ */
 export const getTables = (): Promise<Table[]> =>
   MySqlConnector.executeQuery<{ TABLE_NAME: string }[]>(`SHOW TABLES;`).then(
     response =>
@@ -28,6 +40,13 @@ export const getTables = (): Promise<Table[]> =>
       })),
   );
 
+/**
+ * Get the columns information schema of a table
+ * @param databaseName Database name
+ * @param tableName Table name
+ * @returns List of columns
+ * @see https://dev.mysql.com/doc/refman/8.0/en/information-schema-columns-table.html
+ */
 export const getTableColumnsInformationSchema = (
   databaseName: string,
   tableName: string,
@@ -39,10 +58,7 @@ export const getTableColumnsInformationSchema = (
       key: item.COLUMN_KEY,
       name: item.COLUMN_NAME,
       comment: item.COLUMN_COMMENT,
-      default:
-        item.COLUMN_DEFAULT === 'NULL'
-          ? null
-          : item.COLUMN_DEFAULT?.replace(/^('|")/, '').replace(/('|")$/, ''),
+      default: parseColumnDefault(item.COLUMN_DEFAULT),
       type: item.COLUMN_TYPE,
       data_type: item.DATA_TYPE,
       is_nullable: isNullable(item.IS_NULLABLE),
@@ -58,6 +74,12 @@ export const getTableColumnsInformationSchema = (
     })),
   );
 
+/**
+ * Get all the columns of a row
+ * @param tableName Table name
+ * @param primaryKeys Primary keys of the row
+ * @returns Row
+ */
 export const getRow = (
   tableName: string,
   primaryKeys: { name: string; value: string | number | null }[],
@@ -76,6 +98,12 @@ export const getRow = (
   ).then(response => (response.length ? response[0] : null));
 
 // Utils
+
+/**
+ * Parse a Column to a Row with default values
+ * @param columns Columns
+ * @returns Row
+ */
 export const columnsSchemaToRow = (columns: Column[] | undefined): Row => {
   const row: Row = {};
   columns?.forEach(column => {
@@ -87,6 +115,11 @@ export const columnsSchemaToRow = (columns: Column[] | undefined): Row => {
   return row;
 };
 
+/**
+ * Get the primary keys of a table
+ * @param schema Table schema
+ * @returns Primary keys
+ */
 export const getPrimaryColumns = (schema: Column[]): string[] => {
   const primaryColumns: string[] = [];
   schema.forEach(column => {
@@ -95,6 +128,12 @@ export const getPrimaryColumns = (schema: Column[]): string[] => {
   return primaryColumns;
 };
 
+/**
+ * Get the data type of a column
+ * @param columnName Column name
+ * @param schema Table schema
+ * @returns ('boolean', 'number', 'string')
+ */
 export const getColumnDataTypeFromSchema = (
   columnName: string,
   schema: Column[],
@@ -108,9 +147,14 @@ export const getColumnDataTypeFromSchema = (
     ? 'number'
     : isString(column.data_type)
     ? 'string'
-    : 'string'; // TODO: Add 'datetime' data type as string
+    : 'string';
 };
 
+/**
+ * Check if the SQL data type is a JS string
+ * @param s SQL data type
+ * @returns True if the SQL data type is a JS string
+ */
 export function isString(s: string): boolean {
   switch (s.toLowerCase()) {
     case 'char':
@@ -125,10 +169,36 @@ export function isString(s: string): boolean {
   }
 }
 
+/**
+ * Check if the SQL data type is a JS number
+ * @param s SQL data type
+ * @returns True if the SQL data type is a JS number
+ */
 export function isNumber(s: string): boolean {
-  return isInteger(s) || isFloat(s) || isDouble(s) || isDecimal(s);
+  switch (s.toLowerCase()) {
+    case 'bit':
+    case 'tinyint':
+    case 'smallint':
+    case 'mediumint':
+    case 'int':
+    case 'integer':
+    case 'bigint':
+    // decimal types
+    case 'float':
+    case 'double':
+    case 'dec':
+    case 'decimal':
+      return true;
+    default:
+      return false;
+  }
 }
 
+/**
+ * Check if the SQL data type is a JS boolean
+ * @param s SQL data type
+ * @returns True if the SQL data type is a JS boolean
+ */
 export function isBoolean(s: string): boolean {
   switch (s.toLowerCase()) {
     case 'bool':
@@ -139,39 +209,24 @@ export function isBoolean(s: string): boolean {
   }
 }
 
-function isInteger(s: string): boolean {
-  switch (s.toLowerCase()) {
-    case 'bit':
-    case 'tinyint':
-    case 'smallint':
-    case 'mediumint':
-    case 'int':
-    case 'integer':
-    case 'bigint':
-      return true;
-    default:
-      return false;
-  }
-}
-
-function isFloat(s: string): boolean {
-  return s.toLowerCase() === 'float';
-}
-
-function isDouble(s: string): boolean {
-  return s.toLowerCase() === 'double';
-}
-
-function isDecimal(s: string): boolean {
-  switch (s.toLowerCase()) {
-    case 'dec':
-    case 'decimal':
-      return true;
-    default:
-      return false;
-  }
-}
-
+/**
+ * Check if a column is nullable
+ * @param s 'YES' or 'NO'
+ * @returns True if the column is nullable
+ */
 function isNullable(s: string): boolean {
   return s.toLowerCase() === 'yes';
+}
+
+/**
+ * Parse the default value of a column
+ * @param s Default value
+ * @returns Parsed default value
+ */
+function parseColumnDefault(s: string | null): string | null {
+  return !s
+    ? s
+    : s === 'NULL'
+    ? null
+    : s?.replace(/^('|")/, '').replace(/('|")$/, '');
 }

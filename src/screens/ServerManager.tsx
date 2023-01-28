@@ -27,6 +27,9 @@ const serverSchema = yup.object({
   password: yup.string().optional(),
 });
 
+/**
+ * Screen to add/edit/clone a server
+ */
 const ServerManagerScreen = ({
   navigation,
   route,
@@ -37,6 +40,7 @@ const ServerManagerScreen = ({
   const dispatch = useAppDispatch();
   const snackbar = useSnackBar();
 
+  // Mutation to test connection to a server
   const connection = useMutation({
     mutationFn: (config: Config) => connect(config),
     onSuccess: () => {
@@ -52,6 +56,7 @@ const ServerManagerScreen = ({
       ),
   });
 
+  // Initial values for the form
   const initialValues = useMemo(
     () =>
       server
@@ -69,12 +74,14 @@ const ServerManagerScreen = ({
     [server, action],
   );
 
+  // Set the title of the screen
   useEffect(() => {
     navigation.setOptions({
       title: `${capitalize(action)} Server`,
     });
   }, [navigation, action]);
 
+  // Handle the test connection button
   const handleTestConnection = (values: Server) => {
     connection.mutate({
       host: values.host,
@@ -85,6 +92,7 @@ const ServerManagerScreen = ({
     });
   };
 
+  // Form submit handler
   const onSubmit = async (values: Server, actions: FormikHelpers<Server>) => {
     switch (action) {
       case 'new':

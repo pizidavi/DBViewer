@@ -6,6 +6,9 @@ import {
   NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
 
+/**
+ * Component to show a Header
+ */
 const Header = ({
   navigation,
   back,
@@ -23,6 +26,7 @@ const Header = ({
     headerTintColor,
   }: NativeStackNavigationOptions = options;
 
+  // buttonProps is used to pass props to headerRight
   const buttonProps = useMemo(
     () => ({
       canGoBack: navigation.canGoBack(),

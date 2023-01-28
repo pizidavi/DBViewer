@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { DeviceEventEmitter, Alert, View, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import {
-  ActivityIndicator,
-  Button,
-  DataTable,
-  TextInput,
-} from 'react-native-paper';
+import { ActivityIndicator, Button, TextInput } from 'react-native-paper';
 import type { AST, From } from 'node-sql-parser';
 import { Parser } from 'node-sql-parser/build/mysql';
 
@@ -27,6 +22,9 @@ import { ICONS } from 'utils/icons';
 
 const sqlParser = new Parser();
 
+/**
+ * Screen to execute the queries
+ */
 const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
   const serverName = route.params.serverName;
   const databaseName = route.params.databaseName;
@@ -35,6 +33,7 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
   const snackbar = useSnackBar();
   const autoFetchQuery = useRef<boolean>(false);
 
+  // State to store the AST of the current query
   const [currentAST, setCurrentAST] = useState<AST | null>(null);
   const currentTableName = useMemo<string | undefined>(() => {
     if (
@@ -54,6 +53,7 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
     return [];
   }, [currentAST]);
 
+  // Query to use a database
   const { isSuccess: connected, isLoading: connecting } = useQuery({
     queryKey: ['use', databaseName],
     queryFn: () => useDatabase(databaseName),
@@ -61,6 +61,8 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
     staleTime: 0,
     cacheTime: 0,
   });
+
+  // Query to get the columns information schema of the current table
   const { data: tableSchema } = useQuery({
     queryKey: ['columns-information-schema', databaseName, currentTableName],
     queryFn: () =>
@@ -69,6 +71,7 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
     enabled: !!currentTableName,
   });
 
+  // Get the primary columns of the current table
   const primaryColums = useMemo(
     () => (tableSchema ? getPrimaryColumns(tableSchema) : []),
     [tableSchema],
@@ -77,6 +80,8 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
   const [query, setQuery] = useState(
     tableName ? `SELECT * FROM ${tableName} \nLIMIT 100` : '',
   );
+
+  // Query to execute the query
   const {
     refetch,
     data = [],
@@ -89,6 +94,7 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
     enabled: false,
   });
 
+  // Add a listener to refetch the query
   useEffect(() => {
     DeviceEventEmitter.addListener('refetch.query', () => {
       handleSubmit();
@@ -96,6 +102,7 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
     return () => DeviceEventEmitter.removeAllListeners('refetch.query');
   }, []);
 
+  // Fetch the default query when the connection is established
   useEffect(() => {
     if (!autoFetchQuery.current && connected && query) {
       handleSubmit();
@@ -103,6 +110,7 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
     }
   }, [connected]);
 
+  // Set the header title and the header button
   useEffect(() => {
     navigation.setOptions({
       title: `${databaseName}@${serverName}`,
@@ -117,17 +125,20 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
     });
   }, [navigation, databaseName, serverName, currentTableName]);
 
+  // Handle the submit of the query
   const handleSubmit = () => {
     if (!query) return Alert.alert('Abort', 'Insert a SQL Query');
 
     try {
+      // Parse the query
       const ast = sqlParser.astify(query); // throw if parse fail
       if (Array.isArray(ast)) setCurrentAST(ast.length ? ast[0] : null);
-      else setCurrentAST(ast); // TODO: understand why ast can be an array
+      else setCurrentAST(ast);
     } catch (error) {
       setCurrentAST(null);
     }
 
+    // Execute the query
     refetch({ throwOnError: true })
       .then(r => {
         if (typeof r.data === 'number')
@@ -136,6 +147,7 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
       .catch(err => {});
   };
 
+  // Handle the press of the new row button
   const handleNewRow = () => {
     if (!currentTableName) return;
     navigation.navigate('RowManager', {
@@ -145,6 +157,7 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
     });
   };
 
+  // Handle the press of a row
   const handleRowPress = (row: Row) => {
     if (!currentTableName)
       return Alert.alert(

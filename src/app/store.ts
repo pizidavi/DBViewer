@@ -13,15 +13,18 @@ import {
 
 import storageReducer from './services/storage';
 
+// Configure persist storage
 const storagePersistConfig = {
   key: 'storage',
   storage: AsyncStorage,
 };
 
+// Combine all reducers
 const reducer = combineReducers({
   storage: persistReducer(storagePersistConfig, storageReducer),
 });
 
+// Configure Redux store
 export const store = configureStore({
   reducer: reducer,
   middleware: getDefaultMiddleware =>

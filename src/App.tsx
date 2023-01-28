@@ -11,8 +11,12 @@ import Query from 'screens/Query';
 import Tables from 'screens/Tables';
 import RowManager from 'screens/RowManager';
 
+// Stack Navigator for React Navigation
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+/**
+ * App Component
+ */
 const App = () => {
   return (
     <Stack.Navigator

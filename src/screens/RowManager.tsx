@@ -39,17 +39,23 @@ const jsonSql = jsonToSql({
 });
 jsonSql.setDialect('mysql');
 
+/**
+ * Screen to add/edit/clone a row
+ */
 const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
   const action = route.params.action;
   const databaseName = route.params.databaseName;
   const tableName = route.params.tableName;
   const row = route.params.row;
 
+  // Query to get the columns information schema of the table
   const { data: schema, isLoading } = useQuery({
     queryKey: ['columns-information-schema', databaseName, tableName],
     queryFn: () => getTableColumnsInformationSchema(databaseName, tableName),
     onError: (error: Error) => Alert.alert('Error', error.message),
   });
+
+  // Query to get the all the data of the row if it's an edit or clone action
   const { data: completeRow = {}, isFetching } = useQuery({
     queryKey: ['row', row],
     queryFn: () =>
@@ -64,6 +70,7 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
       !schema.every(col => Object.keys(row).find(c => c === col.name)),
   });
 
+  // Mutation to execute the update query
   const mutation = useMutation({
     mutationFn: (query: string) => executeUpdate(query),
     onError: (error: Error) => Alert.alert('Error', error.message),
@@ -73,6 +80,7 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
     },
   });
 
+  // Initial values of the form
   const initialValues: Row = useMemo(
     () =>
       action === 'new'
@@ -81,10 +89,12 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
     [action, row, completeRow],
   );
 
+  // Primary keys of the table
   const primaryKeys = useMemo(() => getPrimaryColumns(schema ?? []), [schema]);
 
+  // Form submit handler
   const onSubmit = async (values: Row, actions: FormikHelpers<Row>) => {
-    // Map values changing ' to \'
+    // Escape single quotes
     values = Object.entries(values).reduce((diff, [colName, val]) => {
       return {
         ...diff,
@@ -106,6 +116,7 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
       {},
     );
 
+    // Build the query
     const insertJson = {
       type: 'insert',
       values: valuesWithoutPrimaryKeyIfVoid,
@@ -124,6 +135,7 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
     return mutation.mutateAsync(sql.query);
   };
 
+  // Delete row handler
   const handleDeleteRow = useCallback(() => {
     const deleteJson = {
       type: 'remove',
@@ -150,6 +162,7 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
     );
   }, [initialValues, primaryKeys]);
 
+  // Set the header title and actions menu
   useEffect(() => {
     navigation.setOptions({
       title: `${capitalize(action)} Row`,
@@ -238,6 +251,9 @@ type ActionsMenuProps = {
   handleDelete: () => void;
 };
 
+/**
+ * Component that show the actions menu
+ */
 function ActionsMenu({ handleClone, handleDelete }: ActionsMenuProps) {
   const [visible, setVisible] = React.useState(false);
 
@@ -248,7 +264,7 @@ function ActionsMenu({ handleClone, handleDelete }: ActionsMenuProps) {
     <Menu
       visible={visible}
       onDismiss={closeMenu}
-      anchor={<IconButton onPress={openMenu} icon={ICONS.more}></IconButton>}
+      anchor={<IconButton onPress={openMenu} icon={ICONS.more} />}
     >
       <Menu.Item
         title="Clone"

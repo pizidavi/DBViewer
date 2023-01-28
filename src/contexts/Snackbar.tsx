@@ -1,10 +1,4 @@
-import {
-  useState,
-  useCallback,
-  useMemo,
-  createContext,
-  useContext,
-} from 'react';
+import React from 'react';
 import type { PropsWithChildren } from 'react';
 import { Snackbar } from 'react-native-paper';
 
@@ -19,25 +13,32 @@ interface SnackBarActionProps {
   onPress: () => void;
 }
 
-const SnackBarContext = createContext<SnackBarContextProps | null>(null);
+const SnackBarContext = React.createContext<SnackBarContextProps | null>(null);
 
+/**
+ * Provider for the Snackbar
+ */
 export const SnackBarProvider = ({ children }: PropsWithChildren) => {
-  const [visible, setVisible] = useState(false);
-  const [message, setMessage] = useState('');
-  const [action, setAction] = useState<SnackBarActionProps | undefined>(
+  const [visible, setVisible] = React.useState(false);
+  const [message, setMessage] = React.useState('');
+  const [action, setAction] = React.useState<SnackBarActionProps | undefined>(
     undefined,
   );
 
-  const show = useCallback((message: string, action?: SnackBarActionProps) => {
-    setVisible(false);
-    setTimeout(() => {
-      setMessage(message);
-      setAction(action);
-      setVisible(true);
-    }, 150);
-  }, []);
-  const onDismissSnackBar = useCallback(() => setVisible(false), []);
-  const value = useMemo(() => ({ show }), [show]);
+  // Function to show the snackbar
+  const show = React.useCallback(
+    (message: string, action?: SnackBarActionProps) => {
+      setVisible(false);
+      setTimeout(() => {
+        setMessage(message);
+        setAction(action);
+        setVisible(true);
+      }, 150);
+    },
+    [],
+  );
+  const onDismissSnackBar = React.useCallback(() => setVisible(false), []);
+  const value = React.useMemo(() => ({ show }), [show]);
 
   return (
     <SnackBarContext.Provider value={value}>
@@ -56,5 +57,8 @@ export const SnackBarProvider = ({ children }: PropsWithChildren) => {
   );
 };
 
+/**
+ * Hook to use the Snackbar
+ */
 export const useSnackBar = () =>
-  useContext(SnackBarContext) as SnackBarContextProps;
+  React.useContext(SnackBarContext) as SnackBarContextProps;

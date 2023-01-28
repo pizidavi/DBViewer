@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useWindowDimensions } from 'react-native';
-import { FlatList, ScrollView } from 'react-native';
+import { useWindowDimensions, FlatList, ScrollView } from 'react-native';
 import { DataTable } from 'react-native-paper';
 
 import { getLargestColumnsWidth } from 'utils/utils';
@@ -12,14 +11,18 @@ interface TableProps {
 
 const itemsPerPageList = [5, 10, 20, 30, 50];
 
+/**
+ * Component to show a Table
+ */
 const Table = ({ data, onRowPress }: TableProps) => {
   const window = useWindowDimensions();
   const [columnsWidth, setColumnsWidth] = useState<number[]>([]);
 
-  // Table Pagination state
+  // Pagination
   const [page, setPage] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(itemsPerPageList[1]);
 
+  // Get the data for the current page
   const from = useMemo(() => page * itemsPerPage, [page, itemsPerPage]);
   const to = useMemo(
     () => Math.min((page + 1) * itemsPerPage, data.length),
@@ -27,6 +30,7 @@ const Table = ({ data, onRowPress }: TableProps) => {
   );
   const dataPerPage = useMemo(() => data.slice(from, to), [data, from, to]);
 
+  // Get the largest width for each column
   useEffect(() => {
     getLargestColumnsWidth(dataPerPage).then(widths => setColumnsWidth(widths));
   }, [dataPerPage]);

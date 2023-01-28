@@ -18,11 +18,15 @@ import type { HomeScreenProps } from './types';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
 import { deleteServer } from 'app/services/storage';
 
+/**
+ * Screen to show the list of servers
+ */
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const { servers } = useAppSelector(state => state.storage);
 
   const [isExtended, setIsExtended] = useState(true);
 
+  // Handle the scroll event to show/hide the extended FAB
   const handleScrool = useCallback(
     ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
       const currentScrollPosition =
@@ -51,6 +55,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   );
 };
 
+/**
+ * Component to show a server item
+ */
 function ServerItem(props: Server) {
   const navigation = useNavigation();
   return (
@@ -72,6 +79,9 @@ function ServerItem(props: Server) {
   );
 }
 
+/**
+ * Component to show the right menu of a server
+ */
 function RightMenu({ server }: { size: number; server: Server }) {
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
@@ -84,7 +94,7 @@ function RightMenu({ server }: { size: number; server: Server }) {
     <Menu
       visible={visible}
       onDismiss={closeMenu}
-      anchor={<IconButton onPress={openMenu} icon={ICONS.more}></IconButton>}
+      anchor={<IconButton onPress={openMenu} icon={ICONS.more} />}
       anchorPosition="bottom"
     >
       <Menu.Item

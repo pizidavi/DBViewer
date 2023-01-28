@@ -11,6 +11,9 @@ type TextInputFieldProps = {
 } & React.ComponentProps<typeof TextInput> &
   FieldHookConfig<string>;
 
+/**
+ * Component to show a Text Input with Formik support
+ */
 const TextInputField = ({
   name,
   label,
@@ -21,9 +24,12 @@ const TextInputField = ({
 }: TextInputFieldProps) => {
   const [field, meta, helpers] = useField(name);
 
+  // Handle change text
   const handleChangeText = (value: string) => {
     let newValue: string | number | null = value;
+    // For 'null' string, set value to null
     if (value.toLocaleLowerCase() === 'null') newValue = null;
+    // For numeric inputs, try to parse the value
     else if (others.inputMode === 'numeric') newValue = tryParse(value);
     else if (others.inputMode === 'decimal')
       newValue = tryParse(value, parseFloat);

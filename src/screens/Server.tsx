@@ -17,7 +17,11 @@ import type { ServerScreenProps } from './types';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
 import { connect, disconnect, getDatabases } from 'app/services/databaseApi';
 
+/**
+ * Screen to show the databases of a server
+ */
 const ServerScreen = ({ navigation, route }: ServerScreenProps) => {
+  // Get the server from the store
   const server = useAppSelector(state =>
     state.storage.servers.find(server => server.id === route.params.id),
   );
@@ -33,6 +37,7 @@ const ServerScreen = ({ navigation, route }: ServerScreenProps) => {
     return <SafeAreaView></SafeAreaView>;
   }
 
+  // Query to connect to the server
   const {
     refetch: connectServer,
     isSuccess: connected,
@@ -71,6 +76,7 @@ const ServerScreen = ({ navigation, route }: ServerScreenProps) => {
     cacheTime: 0,
   });
 
+  // Query to get the databases of the server
   const {
     data = [],
     error,
@@ -82,15 +88,18 @@ const ServerScreen = ({ navigation, route }: ServerScreenProps) => {
     enabled: connected,
   });
 
+  // Connect to the server when the screen is mounted
   useEffect(() => {
     setTimeout(() => connectServer(), 1); // Manage: Not Host
     return () => {
+      // Disconnect from the server when the screen is unmounted
       disconnect().catch(error => {
         if (error.code !== '404') console.warn(error);
       });
     };
   }, []);
 
+  // Set the title of the screen to the server name
   useEffect(() => {
     navigation.setOptions({
       title: server.name,
@@ -131,6 +140,9 @@ type DatabaseItemProps = {
   serverName: string;
 };
 
+/**
+ * Component to show a database
+ */
 function DatabaseItem({ name, serverName }: DatabaseItemProps) {
   const navigation = useNavigation();
   return (
@@ -151,6 +163,9 @@ function DatabaseItem({ name, serverName }: DatabaseItemProps) {
   );
 }
 
+/**
+ * Component to show the right menu of a database
+ */
 function RightMenu({
   serverName,
   databaseName,
@@ -169,7 +184,7 @@ function RightMenu({
     <Menu
       visible={visible}
       onDismiss={closeMenu}
-      anchor={<IconButton onPress={openMenu} icon={ICONS.more}></IconButton>}
+      anchor={<IconButton onPress={openMenu} icon={ICONS.more} />}
       anchorPosition="bottom"
     >
       <Menu.Item

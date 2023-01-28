@@ -14,10 +14,14 @@ import type { TablesScreenProps } from './types';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
 import { useDatabase, getTables } from 'app/services/databaseApi';
 
+/**
+ * Screen to show all tables in a database
+ */
 const TablesScreen = ({ navigation, route }: TablesScreenProps) => {
   const databaseName = route.params.databaseName;
   const serverName = route.params.serverName;
 
+  // Query to use a database
   const { isSuccess: connected, isLoading: connecting } = useQuery({
     queryKey: ['use', databaseName],
     queryFn: () => useDatabase(databaseName),
@@ -26,6 +30,7 @@ const TablesScreen = ({ navigation, route }: TablesScreenProps) => {
     cacheTime: 0,
   });
 
+  // Query to get all tables in a database
   const {
     refetch,
     data = [],
@@ -37,12 +42,14 @@ const TablesScreen = ({ navigation, route }: TablesScreenProps) => {
     enabled: connected,
   });
 
+  // Set the title of the screen
   useEffect(() => {
     navigation.setOptions({
       title: `${databaseName}@${serverName}`,
     });
   }, [navigation, databaseName, serverName]);
 
+  // Handle when a table is pressed
   const handleCardPress = (name: string) => {
     navigation.navigate('Query', {
       serverName,
@@ -83,6 +90,9 @@ type TableItemProps = {
   onPress: (tableName: string) => void;
 };
 
+/**
+ * Component to show a table
+ */
 function TableItem({ tableName, onPress }: TableItemProps) {
   return (
     <Card onPress={() => onPress(tableName)} style={{ marginBottom: 10 }}>
