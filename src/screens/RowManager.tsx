@@ -24,6 +24,7 @@ import { capitalize } from 'utils/utils';
 import { ICONS } from 'utils/icons';
 
 import type { RowManagerScreenProps } from './types';
+import { useSnackBar } from 'contexts/Snackbar';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
 import {
   executeUpdate,
@@ -47,6 +48,8 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
   const databaseName = route.params.databaseName;
   const tableName = route.params.tableName;
   const row = route.params.row;
+
+  const snackbar = useSnackBar();
 
   // Query to get the columns information schema of the table
   const { data: schema, isLoading } = useQuery({
@@ -74,7 +77,8 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
   const mutation = useMutation({
     mutationFn: (query: string) => executeUpdate(query),
     onError: (error: Error) => Alert.alert('Error', error.message),
-    onSuccess: () => {
+    onSuccess: rows => {
+      snackbar.show(`${rows} row${rows > 1 ? 's' : ''} affected`);
       DeviceEventEmitter.emit('refetch.query');
       navigation.goBack();
     },
