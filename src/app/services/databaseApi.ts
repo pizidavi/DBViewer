@@ -240,10 +240,16 @@ function isNullable(s: string): boolean {
  * @param s Default value
  * @returns Parsed default value
  */
-function parseColumnDefault(s: string | null): string | null {
-  return !s
-    ? s
-    : s === 'NULL'
+function parseColumnDefault(s: string | null): string | number | null {
+  if (s === null) return null;
+  s = s.toLowerCase();
+  return s === 'null'
     ? null
+    : s === 'false'
+    ? 0
+    : s === 'true'
+    ? 1
+    : !isNaN(Number(s))
+    ? Number(s)
     : s?.replace(/^('|")/, '').replace(/('|")$/, '');
 }

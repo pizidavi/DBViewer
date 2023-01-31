@@ -22,7 +22,7 @@ declare global {
     key: string;
     name: string;
     comment: string | null;
-    default: string | null;
+    default: string | number | null;
     type: string;
     data_type: string;
     is_nullable: boolean;
