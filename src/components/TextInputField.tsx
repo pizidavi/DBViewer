@@ -24,6 +24,11 @@ const TextInputField = ({
 }: TextInputFieldProps) => {
   const [field, meta, helpers] = useField(name);
 
+  // Get value as string, converting boolean to 0 or 1
+  const value = String(
+    typeof meta.value === 'boolean' ? +meta.value : meta.value,
+  );
+
   // Handle change text
   const handleChangeText = (value: string) => {
     let newValue: string | number | null = value;
@@ -41,7 +46,7 @@ const TextInputField = ({
       <TextInput
         mode={mode ?? 'outlined'}
         label={label}
-        value={String(meta.value)}
+        value={value}
         onChangeText={handleChangeText}
         onBlur={() => helpers.setTouched(true)}
         error={!!meta.error && meta.touched}
