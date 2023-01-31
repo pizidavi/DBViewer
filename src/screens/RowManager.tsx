@@ -33,6 +33,7 @@ import {
   getRow,
   columnsSchemaToRow,
   isNumber,
+  isDecimal,
 } from 'app/services/databaseApi';
 
 const jsonSql = jsonToSql({
@@ -218,14 +219,17 @@ const RowManagerScreen = ({ navigation, route }: RowManagerScreenProps) => {
                         label={label}
                         helperText={column.comment}
                         inputMode={
-                          isNumber(column.data_type) ? 'numeric' : 'text'
+                          isDecimal(column.data_type)
+                            ? 'decimal'
+                            : isNumber(column.data_type)
+                            ? 'numeric'
+                            : 'text'
                         }
                         keyboardType={
                           isNumber(column.data_type) ? 'numeric' : 'default'
                         }
                         style={styles.margin}
                       />
-                      <Divider style={styles.divider} />
                     </View>
                   );
                 })}
@@ -292,11 +296,8 @@ const styles = StyleSheet.create({
   button: {
     marginVertical: 5,
   },
-  divider: {
-    marginVertical: 10,
-  },
   margin: {
-    marginBottom: 5,
+    marginBottom: 10,
   },
   text: {
     marginVertical: 5,

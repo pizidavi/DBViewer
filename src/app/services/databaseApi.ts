@@ -195,6 +195,23 @@ export function isNumber(s: string): boolean {
 }
 
 /**
+ * Check if the SQL data type is decimal
+ * @param s SQL data type
+ * @returns True if the SQL data type is decimal
+ */
+export function isDecimal(s: string): boolean {
+  switch (s.toLowerCase()) {
+    case 'float':
+    case 'double':
+    case 'dec':
+    case 'decimal':
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
  * Check if the SQL data type is a JS boolean
  * @param s SQL data type
  * @returns True if the SQL data type is a JS boolean
