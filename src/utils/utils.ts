@@ -15,7 +15,10 @@ export const capitalize = (str: string): string =>
  * @param parser Parser
  * @returns Parsed value or origin value
  */
-export const tryParse = (value: string, parser = parseInt): number | string => {
+export const tryParse = (
+  value: string,
+  parser: Function = Number,
+): number | string => {
   const v = parser(value);
   return !isNaN(v) ? v : value;
 };

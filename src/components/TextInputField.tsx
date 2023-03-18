@@ -35,9 +35,8 @@ const TextInputField = ({
     // For 'null' string, set value to null
     if (value.toLocaleLowerCase() === 'null') newValue = null;
     // For numeric inputs, try to parse the value
-    else if (others.inputMode === 'numeric') newValue = tryParse(value);
-    else if (others.inputMode === 'decimal')
-      newValue = tryParse(value, parseFloat);
+    else if (others.inputMode === 'numeric' || others.inputMode === 'decimal')
+      newValue = tryParse(value);
     helpers.setValue(newValue);
   };
 
