@@ -26,12 +26,16 @@ const sqlParser = new Parser();
  * Screen to execute the queries
  */
 const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
-  const serverName = route.params.serverName;
+  const serverId = route.params.serverId;
   const databaseName = route.params.databaseName;
   const tableName = route.params.tableName;
 
   const snackbar = useSnackBar();
   const autoFetchQuery = useRef<boolean>(false);
+
+  const server = useAppSelector(state =>
+    state.storage.servers.find(server => server.id === serverId),
+  )!;
 
   // State to store the AST of the current query
   const [currentAST, setCurrentAST] = useState<AST | null>(null);
@@ -113,7 +117,7 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
   // Set the header title and the header button
   useEffect(() => {
     navigation.setOptions({
-      title: `${databaseName}@${serverName}`,
+      title: `${databaseName}@${server.name}`,
       headerRight: () => (
         <HeaderButton
           icon={ICONS.plus}
@@ -123,7 +127,7 @@ const QueryScreen = ({ navigation, route }: QueryScreenProps) => {
         />
       ),
     });
-  }, [navigation, databaseName, serverName, currentTableName]);
+  }, [navigation, databaseName, server, currentTableName]);
 
   // Handle the submit of the query
   const handleSubmit = () => {

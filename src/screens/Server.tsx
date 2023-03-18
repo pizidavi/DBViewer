@@ -24,18 +24,7 @@ const ServerScreen = ({ navigation, route }: ServerScreenProps) => {
   // Get the server from the store
   const server = useAppSelector(state =>
     state.storage.servers.find(server => server.id === route.params.id),
-  );
-  if (!server) {
-    Alert.alert(
-      'Error',
-      'Server not found',
-      [{ text: 'Home', onPress: () => navigation.navigate('Home') }],
-      {
-        cancelable: false,
-      },
-    );
-    return <SafeAreaView></SafeAreaView>;
-  }
+  )!;
 
   // Query to connect to the server
   const {
@@ -124,7 +113,7 @@ const ServerScreen = ({ navigation, route }: ServerScreenProps) => {
               <DatabaseItem
                 key={item.name}
                 name={item.name}
-                serverName={server.name}
+                serverId={server.id}
               />
             )}
             contentContainerStyle={{ padding: 5, paddingVertical: 10 }}
@@ -137,18 +126,18 @@ const ServerScreen = ({ navigation, route }: ServerScreenProps) => {
 
 type DatabaseItemProps = {
   name: string;
-  serverName: string;
+  serverId: string;
 };
 
 /**
  * Component to show a database
  */
-function DatabaseItem({ name, serverName }: DatabaseItemProps) {
+function DatabaseItem({ name, serverId }: DatabaseItemProps) {
   const navigation = useNavigation();
   return (
     <Card
       onPress={() =>
-        navigation.navigate('Query', { serverName, databaseName: name })
+        navigation.navigate('Query', { serverId, databaseName: name })
       }
       style={styles.margin}
     >
@@ -156,7 +145,7 @@ function DatabaseItem({ name, serverName }: DatabaseItemProps) {
         title={name}
         titleVariant="titleSmall"
         right={_ => (
-          <RightMenu {..._} serverName={serverName} databaseName={name} />
+          <RightMenu {..._} serverId={serverId} databaseName={name} />
         )}
       />
     </Card>
@@ -167,11 +156,11 @@ function DatabaseItem({ name, serverName }: DatabaseItemProps) {
  * Component to show the right menu of a database
  */
 function RightMenu({
-  serverName,
+  serverId,
   databaseName,
 }: {
   size: number;
-  serverName: string;
+  serverId: string;
   databaseName: string;
 }) {
   const navigation = useNavigation();
@@ -190,7 +179,7 @@ function RightMenu({
       <Menu.Item
         title="Tables"
         onPress={() => {
-          navigation.navigate('Tables', { serverName, databaseName });
+          navigation.navigate('Tables', { serverId, databaseName });
           closeMenu();
         }}
       />

@@ -6,8 +6,8 @@ export type RootStackParamList = {
     | { action: 'new' | 'edit' | 'clone'; server: Server }
     | undefined;
   Server: { id: string };
-  Tables: { serverName: string; databaseName: string };
-  Query: { serverName: string; databaseName: string; tableName?: string };
+  Tables: { serverId: string; databaseName: string };
+  Query: { serverId: string; databaseName: string; tableName?: string };
   RowManager: {
     action: 'new' | 'edit' | 'clone';
     databaseName: string;

@@ -18,8 +18,12 @@ import { useDatabase, getTables } from 'app/services/databaseApi';
  * Screen to show all tables in a database
  */
 const TablesScreen = ({ navigation, route }: TablesScreenProps) => {
+  const serverId = route.params.serverId;
   const databaseName = route.params.databaseName;
-  const serverName = route.params.serverName;
+
+  const server = useAppSelector(state =>
+    state.storage.servers.find(server => server.id === serverId),
+  )!;
 
   // Query to use a database
   const { isSuccess: connected, isLoading: connecting } = useQuery({
@@ -36,7 +40,7 @@ const TablesScreen = ({ navigation, route }: TablesScreenProps) => {
     data = [],
     isFetching,
   } = useQuery({
-    queryKey: ['tables', { databaseName, serverName }],
+    queryKey: ['tables', { databaseName, serverName: server.name }],
     queryFn: getTables,
     onError: (error: Error) => Alert.alert('Error', error.message),
     enabled: connected,
@@ -45,14 +49,14 @@ const TablesScreen = ({ navigation, route }: TablesScreenProps) => {
   // Set the title of the screen
   useEffect(() => {
     navigation.setOptions({
-      title: `${databaseName}@${serverName}`,
+      title: `${databaseName}@${server.name}`,
     });
-  }, [navigation, databaseName, serverName]);
+  }, [navigation, databaseName, server]);
 
   // Handle when a table is pressed
   const handleCardPress = (name: string) => {
     navigation.navigate('Query', {
-      serverName,
+      serverId: server.id,
       databaseName,
       tableName: name,
     });
